@@ -5,9 +5,13 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.PremierLeague.model.InfoTeam;
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Team;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,7 +39,7 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbSquadra"
-    private ComboBox<?> cmbSquadra; // Value injected by FXMLLoader
+    private ComboBox<Team> cmbSquadra; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -48,11 +52,63 @@ public class FXMLController {
 
     @FXML
     void doClassifica(ActionEvent event) {
+    	
+    	this.txtResult.clear();
+    	
+    	if(this.model.getGrafo() == null) {
+    		this.txtResult.setText("Crea prima il grafo!");
+    		return;
+    	}
+    	
+    	Team t = this.cmbSquadra.getValue();
+  
+    	
+    	if(t == null) {
+    		this.txtResult.appendText("Selezionare una squadra!");
+    		return;
+    	}
+    	
+    	int punti = this.model.getPunti(t);
+    	
+    	List<InfoTeam> migliori = new LinkedList<>();
+    	List<InfoTeam> peggiori = new LinkedList<>();
+    	
+    	List<InfoTeam> classifica = this.model.calcolaClassifica();
+    	
+    	for(InfoTeam i : classifica) {
+    		if(!i.getTeam().equals(t) && i.getPunti() > punti) {
+    			migliori.add(i);
+    		}else if(!i.getTeam().equals(t) && i.getPunti() < punti){
+    			peggiori.add(i);    
+    		}
+    	}
+    	
+    	this.txtResult.appendText("Squadre migliori: \n");
+    	for(InfoTeam i : migliori) {
+    		this.txtResult.appendText("\n" + i.getTeam() + " "+ -(punti-i.getPunti()));
+    	}
+    	
+    	this.txtResult.appendText("\n\n");
+    	
+    	this.txtResult.appendText("Squadre peggiori: \n");
+    	for(InfoTeam i : peggiori) {
+    		this.txtResult.appendText("\n" + i.getTeam() + " "+ (punti-i.getPunti()));
+    	}
+    	
+    	
 
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	
+    	this.txtResult.clear();
+    	
+    	this.model.creaGrafo();
+    	
+    	this.txtResult.appendText(this.model.infoGrafo());
+    	
+    	
 
     }
 
@@ -74,5 +130,6 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.cmbSquadra.getItems().addAll(this.model.listAllTeams());
     }
 }
